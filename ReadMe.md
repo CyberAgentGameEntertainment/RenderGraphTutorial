@@ -452,12 +452,12 @@ return color;
 </p>
 
 
-## 4. 【課題】Tile Based Deferred Renderingを実装する
-最後に、モバイルのタイルメモリの特性を生かした、`Tile Based Deferred Rendering`を実装する次の二つの課題にチャレンジしてください。
+## 4. 【課題】Deferred Renderingを実装する
+最後に、モバイルのタイルメモリの特性を生かした、シンプルな`Deferred Rendering`を実装する二つの課題にチャレンジしてください。
 
 1. `Assets/Demo_02`の中の下記のコメントを参考にランバート拡散反射を行うTBDRを実装する。なお、この課題は実装例となる`TileBasedDeferredRenderingPass.cs.after`と`DeferredLighting.shader.after`を参考に実装しても構わない
    1. step-1 ディファードライティングを行う
-   2. step-2  フレームバッファ入力を宣言する
+   2. step-2 フレームバッファ入力を宣言する
    3. step-3 タイルメモリからアルベドと法線をロードする
    4. step-4 ハーフランバート拡散反射を計算する
 2. 1で実装したTBDRに追加で一つ以上の情報をG-Bufferに埋め込んで、ディファードライティングを拡張する（例：スペキュラ反射を実装するなど）
