@@ -1,0 +1,95 @@
+Shader "RenderGraph-Tutorial/Monochrome-Sepia"
+{
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        LOD 100
+        ZTest Always ZWrite Off Cull Off
+        Blend SrcAlpha OneMinusSrcAlpha
+        Pass    // 0 モノクロ化
+        {
+            Name "Monochrome"
+
+            HLSLPROGRAM
+				#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+                #pragma vertex Vert 
+                #pragma fragment Frag
+                
+                half4 Frag(Varyings input) : SV_Target
+                {
+                    // step-6 モノクロ化のフラグメントシェーダーの実装
+                    half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texcoord);
+                    color.xyz = dot(color.rgb, float3(0.299f, 0.587f, 0.114f));
+                    return color;
+                }
+            
+            ENDHLSL
+        }
+        Pass    // 1 セピア化
+        {
+            Name "Monochrome"
+
+            HLSLPROGRAM
+				#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+                #pragma vertex Vert 
+                #pragma fragment Frag
+                
+                half4 Frag(Varyings input) : SV_Target
+                {
+                    // step-7 セピア化のフラグメントシェーダーの実装
+                    half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.texcoord);
+                    half3 sepia = float3(0.393, 0.769, 0.189);
+                    half3 sepia2 = float3(0.349, 0.686, 0.168);
+                    half3 sepia3 = float3(0.272, 0.534, 0.131);
+                    color.r = dot(color.rgb, sepia);
+                    color.g = dot(color.rgb, sepia2); 
+                    color.b = dot(color.rgb, sepia3);
+                    return color;
+                }
+            
+            ENDHLSL
+        }
+        Pass    // 2 最終合成
+        {
+            Name "Combine"
+
+            HLSLPROGRAM
+                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+                #pragma vertex Vert 
+                #pragma fragment Frag
+
+                // step-8 利用するフレームバッファメモリの定義（SetInputAttachmentと対応する）
+                FRAMEBUFFER_INPUT_HALF(0);  // モノクロバッファはタイルメモリから読み込む
+                FRAMEBUFFER_INPUT_HALF(1);  // セピアバッファはタイルメモリから読み込む
+
+                // step-9 深度テクスチャの定義
+                TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+                
+                half4 Frag(Varyings input) : SV_Target
+                {
+                    // step-10 合成の処理を実装する。
+                    // タイルメモリからモノクロとセピアの色を取得する。
+                    half4 monochromeColor = LOAD_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
+                    half4 sepiaColor = LOAD_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
+                    
+                    // シーンの深度値を取得する。
+                    float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_LinearClamp, input.texcoord).r;
+                    
+                    // _CameraDepthTextureは非線形な深度値なので線形な値に変換する。
+                    float linearDepth = LinearEyeDepth(depth, _ZBufferParams);
+                    // 深度値が20mより遠い場合はモノクロ化、近い場合はセピア化を行ためのブレンド値を計算する。
+                    half blend = saturate(linearDepth / 20.0);
+                    // ブレンドして出力
+                    return lerp(sepiaColor, monochromeColor, blend);
+                }
+
+            ENDHLSL
+        }
+    }
+}

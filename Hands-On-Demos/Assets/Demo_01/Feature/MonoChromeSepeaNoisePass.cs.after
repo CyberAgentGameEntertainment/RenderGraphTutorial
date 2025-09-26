@@ -1,0 +1,128 @@
+#define USE_RENDER_PASS
+
+using System;
+using Unity.Collections;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal;
+
+namespace Demo_01
+{
+    public class MonoChromeSepeaNoisePass : ScriptableRenderPass, IDisposable
+    {
+        private Material _material;
+        private class PassData
+        {
+            public Material BlitMaterial;
+            public TextureHandle SourceTexture;
+        }
+        
+        /// <summary>
+        ///     フレームバッファフェッチを使ったバージョンのRenderGraphを記録する
+        /// </summary>
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            if (_material == null)
+            {
+                _material = CoreUtils.CreateEngineMaterial("RenderGraph-Tutorial/Monochrome-Sepia-Noise");
+            }
+            var universalResourceData = frameData.Get<UniversalResourceData>();
+            var cameraColor = universalResourceData.cameraColor;
+            
+            // モノクロ画像の描きこみ先のテクスチャを作成する
+            var monochromeTextureDesc = renderGraph.GetTextureDesc(universalResourceData.cameraColor);
+            // メモリーレスを指定
+            monochromeTextureDesc.memoryless = RenderTextureMemoryless.Color;
+            monochromeTextureDesc.name = "Monochrome Texture";
+            var monochromeTextureHandle = renderGraph.CreateTexture(monochromeTextureDesc);
+            
+            // セピア画像の描きこみ先のテクスチャを作成する
+            var sepiaTextureDesc = renderGraph.GetTextureDesc(universalResourceData.cameraColor);
+            // メモリーレスを指定
+            sepiaTextureDesc.memoryless = RenderTextureMemoryless.Color;
+            sepiaTextureDesc.name = "Sepia Texture";
+            var sepiaTextureHandle = renderGraph.CreateTexture(sepiaTextureDesc);
+            
+            // モノクロ化のパスを作成する
+            using(var builder = renderGraph.AddRasterRenderPass<PassData>("Monochrome Pass", out var passData))
+            {
+                builder.SetRenderAttachment(monochromeTextureHandle, 0);
+                // カメラカラーをテクスチャとして使用申請する
+                builder.UseTexture(universalResourceData.cameraColor);
+                
+                passData.BlitMaterial = _material;
+                passData.SourceTexture = cameraColor;
+                // ネイティブパス構築時に実際に呼び出されるメソッドを指定する
+                builder.SetRenderFunc(static (PassData passData, RasterGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    // ソーステクスチャにカメラカラーを指定してBlitを行う
+                    Blitter.BlitTexture(cmd,  passData.SourceTexture, Vector2.one, passData.BlitMaterial, 0);
+                });
+            }
+            
+            // セピア化のパスを作成する
+            using(var builder = renderGraph.AddRasterRenderPass<PassData>("Sepia Pass", out var passData))
+            {
+                builder.SetRenderAttachment(sepiaTextureHandle, 0);
+                // カメラカラーをテクスチャとして使用申請する
+                builder.UseTexture(universalResourceData.cameraColor);
+                passData.BlitMaterial = _material;
+                passData.SourceTexture = cameraColor;
+                builder.SetRenderFunc(static (PassData passData, RasterGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    // ソーステクスチャにカメラカラーを指定してBlitを行う
+                    Blitter.BlitTexture(cmd,  passData.SourceTexture, Vector2.one, passData.BlitMaterial, 1);
+                });
+            }
+            // step-1 モノクロ化とセピア化の合成のパスを作成する
+            // まずは合成結果を描き込むテクスチャを作成する
+            var combineTextureDesc = renderGraph.GetTextureDesc(universalResourceData.cameraColor);
+            combineTextureDesc.name = "Combine Texture";
+            var combineTextureHandle = renderGraph.CreateTexture(combineTextureDesc);
+            
+            // モノクロ化とセピア化の合成のパスを作成する
+            using (var builder =
+                   renderGraph.AddRasterRenderPass<PassData>("Combine Pass", out var passData))
+            {
+                builder.SetRenderAttachment(combineTextureHandle, 0);
+                builder.SetInputAttachment(monochromeTextureHandle, 0);
+                builder.SetInputAttachment(sepiaTextureHandle, 1);
+                builder.UseTexture(universalResourceData.cameraDepth);
+                passData.BlitMaterial = _material;  
+                builder.SetRenderFunc(static (PassData passData, RasterGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    // ソーステクスチャにカメラカラーを指定してBlitを行う
+                    Blitter.BlitTexture(cmd, Vector2.one, passData.BlitMaterial, 2);
+                });
+            }
+            
+            // step-2 合成結果にノイズをかけるパスを作成する
+            using (var builder =
+                   renderGraph.AddRasterRenderPass<PassData>("Noise Pass", out var passData))
+            {
+                builder.SetRenderAttachment(universalResourceData.cameraColor, 0);
+                // combineTextureHandleはオフセットサンプリングを行うため、フレームバッファフェッチができないため、テクスチャとして使用申請する
+                builder.UseTexture(combineTextureHandle);
+                passData.BlitMaterial = _material;
+                passData.SourceTexture = combineTextureHandle;
+                builder.SetRenderFunc(static (PassData passData, RasterGraphContext context) =>
+                {
+                    var cmd = context.cmd;
+                    // ソーステクスチャにカメラカラーを指定してBlitを行う
+                    Blitter.BlitTexture(cmd,  passData.SourceTexture, Vector2.one, passData.BlitMaterial, 3);
+                });
+            }
+        }
+        
+        public void Dispose()
+        {
+            if (_material == null) return;
+            CoreUtils.Destroy(_material);
+            _material = null;
+        }
+    }
+}

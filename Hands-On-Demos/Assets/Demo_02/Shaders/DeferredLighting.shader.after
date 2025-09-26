@@ -1,0 +1,45 @@
+Shader "RenderGraph-Tutorial/DeferredLighting"
+{
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
+        LOD 100
+        ZTest Always ZWrite Off Cull Off
+        Blend SrcAlpha OneMinusSrcAlpha
+        Pass    // 0 
+        {
+            Name "Deferred Lighting"
+
+            HLSLPROGRAM
+				#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+				#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+				
+                #pragma vertex Vert 
+                #pragma fragment Frag
+				
+				// step-2  フレームバッファ入力を宣言する
+                FRAMEBUFFER_INPUT_HALF(0);  // アルベド
+                FRAMEBUFFER_INPUT_HALF(1);  // 法線
+                
+                half4 Frag(Varyings input) : SV_Target
+                {
+                    // step-3 タイルメモリからアルベドと法線をロードする
+                    half4 albedo = LOAD_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
+                    half4 normal = LOAD_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
+                    // メインライトの情報を取得
+                    Light mainLight = GetMainLight();
+                    
+                    // step-4 ハーフランバート拡散反射を計算する
+                    float3 normalWS = normal.xyz;
+                    // NdotLを0.5で底上げして2倍することで、影の部分も明るくする
+                    float NdotL = dot(normalWS, mainLight.direction) * 0.5 + 0.5;
+                    float3 diffuse = albedo.rgb * mainLight.color * NdotL;
+                    return half4(diffuse, 1);
+                }
+            
+            ENDHLSL
+        }
+    }
+}

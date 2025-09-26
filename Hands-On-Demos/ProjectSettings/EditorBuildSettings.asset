@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 0
+    path: Assets/2_2 Heavy Loop/Heavy Loop.unity
+    guid: 6660593692a83594db8e1d4ac7b2cafd
+  - enabled: 0
+    path: Assets/2_3 Algorithm/Algorithm.unity
+    guid: 44320c61190de344aa1a7b24e9728b22
+  - enabled: 0
+    path: Assets/Demo_00/Demo_00.unity
+    guid: 8050e7f1d7ad21448a563cfe74363eee
+  - enabled: 0
+    path: Assets/Demo_01/Demo_01.unity
+    guid: 90e79155e901f5f459906c4b22fe13f1
+  - enabled: 0
+    path: Assets/3_4_1 Down Sampled Effect/DownSampledEffect.unity
+    guid: a6d5c78c6bd9de8448328fd8e91092b9
+  - enabled: 0
+    path: Assets/6_1_1 Lookup Table/Lookup Table.unity
+    guid: f4aeb7d2ef39c7c4b95f2795862d583f
+  - enabled: 0
+    path: Assets/5_1_1 Half Floating Value/Half Floating Value.unity
+    guid: 29fd36e628e9149b3a38793779eee013
+  - enabled: 0
+    path: Assets/6_2_1 Early Depth Test/Runtime/Early Depth Test.unity
+    guid: c9ef89321c4454841a144e402d89c43e
+  m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0
