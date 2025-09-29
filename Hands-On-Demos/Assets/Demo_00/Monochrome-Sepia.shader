@@ -56,7 +56,6 @@ Shader "RenderGraph-Tutorial/Monochrome-Sepia"
                 // step-8 利用するフレームバッファメモリの定義（SetInputAttachmentと対応する）
 
                 // step-9 深度テクスチャの定義
-                TEXTURE2D_X_FLOAT(_CameraDepthTexture);
                 
                 half4 Frag(Varyings input) : SV_Target
                 {
