@@ -168,14 +168,14 @@ Unityも内部的にはVulkan/MetalなどのAPIを利用しています。その
 では、簡単なポストプロセスを実装していきましょう。`Assets/Demo_00/Demo_00.unity`シーンを開いてください。
 このシーンを開くと次の画像のようなステージが表示されます。<br/>
 今回は、このシーンに深度情報を元にモノクロ化とセピア化された画像を合成する処理を実装していきます。</br>
-なお、この演習の完成版として`MonoChromeSepeaPass.cs.after`、`Monochrome-Sepia.shader.after`が用意されていますので、問題が起きたときはそちらのコードを参照してみてください。
+なお、この演習の完成版として`MonoChromeSepiaPass.cs.after`、`Monochrome-Sepia.shader.after`が用意されていますので、問題が起きたときはそちらのコードを参照してみてください。
 
 <p align="center">
   <img width="100%" src="figs/007.png"><br>
 </p>
 
 ### step-1 モノクロ画像の描きこみ先のテクスチャを作成する
-最初は、C#側のコードから実装していきます。`Assets/Demo_00/Feature/MonoChromeSepeaPass.cs`を開いてください。
+最初は、C#側のコードから実装していきます。`Assets/Demo_00/Feature/MonoChromeSepiaPass.cs`を開いてください。
 
 まずはモノクロ画像の描き込み先となるテクスチャを作成します。下記のコードを該当するコメントの箇所に入力してください。
 このテクスチャは計算用の一時テクスチャで、このパス以降で利用しないので、メモリーレスモードを指定している点に注目してください。
@@ -367,11 +367,11 @@ Frame Debuggerで確認すると、次のように`(RP 4:0)Monochrome Pass`、`(
 ## 【ハンズオン演習】合成した画像にノイズをかける
 では、先ほどの演習プログラムにノイズ加工を加える演習を行いましょう。先ほどの処理が一部実装されている`Assets/Demo_01/Demo_01.unity`を開いてください。</br>
 
-なお、この演習の完成版として`MonoChromeSepeaPassNoise.cs.after`、`Monochrome-Sepia-Noise.shader.after`が用意されています。
+なお、この演習の完成版として`MonoChromeSepiaPassNoise.cs.after`、`Monochrome-Sepia-Noise.shader.after`が用意されています。
 
 
 ### step-1 モノクロ化とセピア化の合成のパスを作成する
-まずはC#側からです。`Assets/Demo_01/Feature/MonoChromeSepeaNoisePass.cs`を開いてください。<br/>
+まずはC#側からです。`Assets/Demo_01/Feature/MonoChromeSepiaNoisePass.cs`を開いてください。<br/>
 今回はモノクロ化とセピア化が最終結果ではないので、合成した画像を出力するためのテクスチャを作成し、そのテクスチャに合成処理を実行します。なお、このテクスチャは後のノイズ加工のパスでテクスチャとして利用するためメモリーレスモードの指定を行っていない点に注意してください。<br/>
 
 では、次のコードを入力してください。
