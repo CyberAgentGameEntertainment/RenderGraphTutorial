@@ -1,10 +1,10 @@
 using UnityEngine.Rendering.Universal;
 
-namespace Demo_01
+namespace Demo_00
 {
-    public class MonoChromeSepeaNoiseFeature : ScriptableRendererFeature
+    public class MonoChromeSepiaFeature : ScriptableRendererFeature
     {
-        private MonoChromeSepeaNoisePass _pass;
+        private MonoChromeSepiaPass _pass;
         public override void Create()
         {
             _pass = new()

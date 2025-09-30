@@ -9,7 +9,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace Demo_00
 {
-    public class MonoChromeSepeaPass : ScriptableRenderPass, IDisposable
+    public class MonoChromeSepiaPass : ScriptableRenderPass, IDisposable
     {
         private Material _material;
         private class PassData
